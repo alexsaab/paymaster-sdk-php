@@ -1,0 +1,30 @@
+{
+  "name": "alexsaab/paymaster-sdk-php",
+  "description": "PHP SDK for PayMaster payment system",
+  "type": "library",
+  "version":"1.0.1",
+  "require": {
+    "php": ">=5.3.0",
+    "ext-curl": "*",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "psr/log": "^1.0"
+  },
+  "require-dev": {
+    "ext-xml": "^7.2",
+    "phpunit/phpunit": "^7.2",
+    "mockery/mockery": "^1.1"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Alex Agafonov",
+      "email": "awa77@mail.ru"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "PaymasterSdkPHP\\": "lib/"
+    }
+  }
+}

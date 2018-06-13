@@ -116,7 +116,7 @@ class CommonProtocol
     protected $HASH_METHOD = 'md5';
 
     // Какие параметры обязательные
-    protected $required = array('LMI_MERCHANT_ID', 'LMI_PAYMENT_AMOUNT', 'LMI_CURRENCY', 'LMI_PAYMENT_DESC');
+    protected $required = array('LMI_MERCHANT_ID', 'LMI_PAYMENT_AMOUNT', 'LMI_CURRENCY', 'LMI_PAYMENT_DESC', 'KEYPASS');
 
     // Начинаем работать с онлайн-кассой
     // Для начала забиваем корзину товара
@@ -220,7 +220,12 @@ class CommonProtocol
      * Получение формы оплаты
      */
     public function getForm() {
+        $this->__checkForm1();
+        $html = "<input type='hidden' name='LMI_MERCHANT_ID' value='{$this->LMI_MERCHANT_ID}'/>";
+        $html .= "<input type='hidden' name='LMI_PAYMENT_AMOUNT' value='{$this->LMI_PAYMENT_AMOUNT}'/>";
+        $html .= "<input type='hidden' name='LMI_PAYMENT_AMOUNT' value='{$this->LMI_PAYMENT_AMOUNT}'/>";
 
+        // protected $required = array('LMI_MERCHANT_ID', 'LMI_PAYMENT_AMOUNT', 'LMI_CURRENCY', 'LMI_PAYMENT_DESC', 'KEYPASS');
     }
 
 
@@ -229,8 +234,8 @@ class CommonProtocol
      */
     private function __checkForm1() {
         foreach ($this->required as $var) {
-            if (isset($this->$var))
-
+            if (!isset($this->$var))
+                throw new Exception('Не хватает переменных для получения формы оплаты. Не задана переменная '.$var);
         }
     }
 

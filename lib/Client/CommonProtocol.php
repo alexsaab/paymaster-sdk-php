@@ -135,11 +135,38 @@ class CommonProtocol
     {
         $this->request = (object) $_REQUEST;
 
-        if (isset($this->request->LMI_MERCHANT_ID))
-            $this->LMI_MERCHANT_ID = $this->request->LMI_MERCHANT_ID;
+        // Здесь прописываем все переменные если они конечно есть в POST или GET запросе
 
         if (isset($this->request->LMI_MERCHANT_ID))
             $this->LMI_MERCHANT_ID = $this->request->LMI_MERCHANT_ID;
+
+        if (isset($this->request->LMI_PAYMENT_NO))
+            $this->LMI_PAYMENT_NO = $this->request->LMI_PAYMENT_NO;
+
+        if (isset($this->request->LMI_SYS_PAYMENT_ID))
+            $this->LMI_SYS_PAYMENT_ID = $this->request->LMI_SYS_PAYMENT_ID;
+
+        if (isset($this->request->LMI_SYS_PAYMENT_DATE))
+            $this->LMI_SYS_PAYMENT_DATE = $this->request->LMI_SYS_PAYMENT_DATE;
+
+        if (isset($this->request->LMI_PAYMENT_AMOUNT))
+            $this->LMI_PAYMENT_AMOUNT = $this->request->LMI_PAYMENT_AMOUNT;
+
+        if (isset($this->request->LMI_CURRENCY))
+            $this->LMI_CURRENCY = $this->request->LMI_CURRENCY;
+
+        if (isset($this->request->LMI_PAID_AMOUNT))
+            $this->LMI_PAID_AMOUNT = $this->request->LMI_PAID_AMOUNT;
+
+        if (isset($this->request->LMI_PAID_CURRENCY))
+            $this->LMI_PAID_CURRENCY = $this->request->LMI_PAID_CURRENCY;
+
+        if (isset($this->request->LMI_PAYMENT_SYSTEM))
+            $this->LMI_PAYMENT_SYSTEM = $this->request->LMI_PAYMENT_SYSTEM;
+
+        if (isset($this->request->LMI_SIM_MODE))
+            $this->LMI_SIM_MODE = $this->request->LMI_SIM_MODE;
+
     }
 
     /**
@@ -167,9 +194,11 @@ class CommonProtocol
 
     /**
      * Получение подписи
+     * Просто делаем ее по MD5
      */
     public function getSIGN() {
-
+        $sign = $this->LMI_MERCHANT_ID . ':' . $this->LMI_PAYMENT_AMOUNT . ':' . $this->LMI_PAYMENT_DESC . ':' . $this->KEYPASS;
+        return md5($sign);
     }
 
 
@@ -177,13 +206,39 @@ class CommonProtocol
      * Получение проверочного хэша
      */
     public function getLMI_HASH() {
-
-        $SECRET = $this->paymaster_secret;
-        $string = $LMI_MERCHANT_ID . ";" . $LMI_PAYMENT_NO . ";" . $LMI_SYS_PAYMENT_ID . ";" . $LMI_SYS_PAYMENT_DATE . ";" . $LMI_PAYMENT_AMOUNT . ";" . $LMI_CURRENCY . ";" . $LMI_PAID_AMOUNT . ";" . $LMI_PAID_CURRENCY . ";" . $LMI_PAYMENT_SYSTEM . ";" . $LMI_SIM_MODE . ";" . $this->KEYPASS;
-        $hash = base64_encode(hash($this->paymaster_hash_method, $string, true));
+        // Подготавливаем строчку для хеша
+        $stringToHash = $this->LMI_MERCHANT_ID . ";" . $this->LMI_PAYMENT_NO . ";" . $this->LMI_SYS_PAYMENT_ID . ";"
+            . $this->LMI_SYS_PAYMENT_DATE . ";" . $this->LMI_PAYMENT_AMOUNT . ";" . $this->LMI_CURRENCY . ";"
+            . $this->LMI_PAID_AMOUNT . ";" . $this->LMI_PAID_CURRENCY . ";" . $this->LMI_PAYMENT_SYSTEM . ";"
+            . $this->LMI_SIM_MODE . ";" . $this->KEYPASS;
+        // И кодируем хеш в соответствии с установленным алгоритмом для шифорования
+        $hash = base64_encode(hash($this->HASH_METHOD, $stringToHash, true));
         return $hash;
     }
 
+    /**
+     * Получение формы оплаты
+     */
+    public function getForm() {
 
+    }
+
+
+    /**
+     * Проверка основных переменных формы
+     */
+    private function __checkForm1() {
+        foreach ($this->required as $var) {
+            if (isset($this->$var))
+
+        }
+    }
+
+    /**
+     *  Проверка переменных формы для онлайн кассы (товарных позиций)
+     */
+    private function __checkForm2() {
+
+    }
 
 }

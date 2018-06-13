@@ -347,7 +347,7 @@ class CurlClient implements ApiClientInterface
             case CURLE_COULDNT_CONNECT:
             case CURLE_COULDNT_RESOLVE_HOST:
             case CURLE_OPERATION_TIMEOUTED:
-                $msg = "Could not connect to Yandex Money API. Please check your internet connection and try again.";
+                $msg = "Could not connect to Paymaster API. Please check your internet connection and try again.";
                 break;
             case CURLE_SSL_CACERT:
             case CURLE_SSL_PEER_CERTIFICATE:

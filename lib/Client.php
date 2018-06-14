@@ -9,7 +9,7 @@
 /**
  * The MIT License
  *
- * Copyright (c) 2017 Paymaster LLC
+ * Copyright (c) 2018 Paymaster LLC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,12 +34,17 @@ namespace PaymasterSdkPHP;
 
 class Client {
 
-    public function __construct(Client\ApiClientInterface $apiClient = null, ConfigurationLoaderInterface $configLoader = null)
+    public function __construct(Client\ApiClientInterface $apiClient = null, ConfigurationLoaderInterface $configLoader = null, Client\CommonProtocol $commonProtocol = null)
     {
 
         if ($apiClient === null) {
             $apiClient = new Client\CurlClient();
         }
+
+        if ($this->commonProtocol === null) {
+            $this->commonProtocol = new Client\CommonProtocol();
+        }
+
 
         if ($configLoader === null) {
             $configLoader = new ConfigurationLoader();

@@ -6,6 +6,30 @@
  * Time: 18:20
  */
 
+/**
+ * The MIT License
+ *
+ * Copyright (c) 2018 Paymaster LLC
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 namespace PaymasterSdkPHP\Client;
 
 
@@ -115,6 +139,7 @@ class CommonProtocol
     // Как работаем с хешем, по какому алгоритму его шифруем для проверки подлинности запроса
     protected $HASH_METHOD = 'md5';
 
+
     // Какие параметры обязательные
     protected $required = array('LMI_MERCHANT_ID', 'LMI_PAYMENT_AMOUNT', 'LMI_CURRENCY', 'LMI_PAYMENT_DESC', 'KEYPASS');
 
@@ -124,6 +149,20 @@ class CommonProtocol
 
     // Массив с обязательными параметрами для онлайн позиции (товара) онлайн кассы
     protected $cart_required = array('NAME', 'QTY', 'PRICE', 'TAX');
+
+    // URL для оплаты через форму
+    // Очень важно
+    protected $url = 'https://paymaster.ru/Payment/Init';
+
+    // Типы НДС и значения
+    protected $vatValues = array(
+        'vat18',	// НДС 18%
+        'vat10', 	// НДС 10%
+        'vat118', 	// НДС по формуле 18/118
+        'vat110', 	// НДС по формуле 10/110
+        'vat0', 	// НДС 0%
+        'no_vat', 	// НДС не облагается
+    );
 
     // Переменная для хранения запроса
     protected $request = array();
@@ -223,8 +262,11 @@ class CommonProtocol
         // Проверяем форму основную
         $this->__checkForm1();
 
+        // Основные значения
         $html = "<input type='hidden' name='LMI_MERCHANT_ID' value='{$this->LMI_MERCHANT_ID}'/>\n";
-        $html .= "<input type='hidden' name='LMI_PAYMENT_AMOUNT' value='{$this->LMI_PAYMENT_AMOUNT}'/>\n";
+        // Приводим значения к формату 0.00
+        $LMI_PAYMENT_AMOUNT = number_format($this->LMI_PAYMENT_AMOUNT,2);
+        $html .= "<input type='hidden' name='LMI_PAYMENT_AMOUNT' value='{$LMI_PAYMENT_AMOUNT}'/>\n";
         $html .= "<input type='hidden' name='LMI_CURRENCY' value='{$this->LMI_CURRENCY}'/>\n";
         $html .= "<input type='hidden' name='LMI_PAYMENT_DESC' value='{$this->LMI_PAYMENT_DESC}'/>\n";
 
@@ -251,10 +293,27 @@ class CommonProtocol
         if ($this->LMI_SHOP_ID)
             $html .= "<input type='hidden' name='LMI_SHOP_ID' value='{$this->LMI_SHOP_ID}'/>\n";
 
+
         // Теперь выводим товарыные позиции
+        if (count($this->LMI_SHOPPINGCART) > 0) {
+            // Сумма позиций в заказе
+            $amount = 0.00;
+            foreach ($this->LMI_SHOPPINGCART as $key=>$ITEM) {
+                $this->__checkForm2($ITEM);
+                $PRICE = number_format($ITEM['PRICE'],2);
+                $html .= "<input type='hidden' name='LMI_SHOPPINGCART.ITEM[{$key}].NAME' value='{$ITEM['NAME']}'/>\n";
+                $html .= "<input type='hidden' name='LMI_SHOPPINGCART.ITEM[{$key}].QTY' value='{$ITEM['QTY']}'/>\n";
+                $html .= "<input type='hidden' name='LMI_SHOPPINGCART.ITEM[{$key}].PRICE' value='{$PRICE}'/>\n";
+                $html .= "<input type='hidden' name='LMI_SHOPPINGCART.ITEM[{$key}].TAX' value='{$ITEM['TAX']}'/>\n";
+                $amount += $PRICE*$ITEM['QTY'];
+            }
+        }
 
+        if (isset($amount))
+            if ($amount != $LMI_PAYMENT_AMOUNT)
+                throw new \Exception('Не совпадают суммы. Сумма заказа '.$LMI_PAYMENT_AMOUNT.', а сумма товарных позиций '.$amount.' !');
 
-
+        echo $html;
     }
 
 
@@ -262,17 +321,23 @@ class CommonProtocol
      * Проверка основных переменных формы
      */
     private function __checkForm1() {
-        foreach ($this->required as $var) {
+        foreach ($this->required as $var)
             if (!isset($this->$var))
-                throw new Exception('Не хватает переменных для получения формы оплаты. Не задана переменная "'.$var.'" !');
-        }
+                throw new \Exception('Не хватает переменных для получения формы оплаты. Не задана переменная "'.$var.'" !');
+
     }
 
     /**
-     *  Проверка переменных формы для онлайн кассы (товарных позиций)
+     * Проверка переменных формы для онлайн кассы (товарных позиций)
      */
-    private function __checkForm2() {
+    private function __checkForm2($ITEM) {
+        foreach ($this->cart_required as $var)
+            if (!isset($ITEM))
+                throw new \Exception('Не хватает переменных для получения формы оплаты в товарной позиции. Не задана переменная "'.$var.'" !');
 
+        if (!in_array($ITEM['TAX'],$this->vatValues))
+            throw new \Exception('НДС для товарной позиции задан неверно "'.$ITEM['TAX'].'" !');
     }
+
 
 }

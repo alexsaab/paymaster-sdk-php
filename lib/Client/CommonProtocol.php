@@ -15,7 +15,7 @@ class CommonProtocol
     // Идентификатор продавца
     // Идентификатор сайта в системе PayMaster. Идентификатор можно увидеть в Личном Кабинете, на странице
     // "Список сайтов", в первой колонке.
-    protected $LMI_MERCHANT_ID = '';
+    protected $LMI_MERCHANT_ID;
 
     // Сумма платежа
     // Сумма платежа, которую продавец желает получить от покупателя. Сумма должна быть больше нуля, дробная часть
@@ -31,11 +31,11 @@ class CommonProtocol
     // В этой переменной продавец задает номер счета (идентификатор покупки) в соответствии со своей системой учета.
     // Несмотря на то, что параметр не является обязательным, мы рекомендуем всегда задавать его. Идентификатор должен
     // представлять собой не пустую строку.
-    protected $LMI_PAYMENT_NO = '';
+    protected $LMI_PAYMENT_NO;
 
     // Назначение платежа
     // Описание товара или услуги. Формируется продавцом. Максимальная длина - 255 символов.
-    protected $LMI_PAYMENT_DESC = '';
+    protected $LMI_PAYMENT_DESC;
 
     // Режим тестирования
     // Дополнительное поле, определяющее режим тестирования. Действует только в режиме тестирования и может
@@ -220,12 +220,40 @@ class CommonProtocol
      * Получение формы оплаты
      */
     public function getForm() {
+        // Проверяем форму основную
         $this->__checkForm1();
-        $html = "<input type='hidden' name='LMI_MERCHANT_ID' value='{$this->LMI_MERCHANT_ID}'/>";
-        $html .= "<input type='hidden' name='LMI_PAYMENT_AMOUNT' value='{$this->LMI_PAYMENT_AMOUNT}'/>";
-        $html .= "<input type='hidden' name='LMI_PAYMENT_AMOUNT' value='{$this->LMI_PAYMENT_AMOUNT}'/>";
 
-        // protected $required = array('LMI_MERCHANT_ID', 'LMI_PAYMENT_AMOUNT', 'LMI_CURRENCY', 'LMI_PAYMENT_DESC', 'KEYPASS');
+        $html = "<input type='hidden' name='LMI_MERCHANT_ID' value='{$this->LMI_MERCHANT_ID}'/>\n";
+        $html .= "<input type='hidden' name='LMI_PAYMENT_AMOUNT' value='{$this->LMI_PAYMENT_AMOUNT}'/>\n";
+        $html .= "<input type='hidden' name='LMI_CURRENCY' value='{$this->LMI_CURRENCY}'/>\n";
+        $html .= "<input type='hidden' name='LMI_PAYMENT_DESC' value='{$this->LMI_PAYMENT_DESC}'/>\n";
+
+        // Формируем и выводим подпись
+        $html .= "<input type='hidden' name='SIGN' value='{$this->getSIGN()}'/>\n";
+
+        // Теперь выводим все вспомогальтельные параметры
+        if ($this->LMI_PAYMENT_NO)
+            $html .= "<input type='hidden' name='LMI_PAYMENT_NO' value='{$this->LMI_PAYMENT_NO}'/>\n";
+        if ($this->LMI_SIM_MODE)
+            $html .= "<input type='hidden' name='LMI_SIM_MODE' value='{$this->LMI_SIM_MODE}'/>\n";
+        if ($this->LMI_INVOICE_CONFIRMATION_URL)
+            $html .= "<input type='hidden' name='LMI_INVOICE_CONFIRMATION_URL' value='{$this->LMI_INVOICE_CONFIRMATION_URL}'/>\n";
+        if ($this->LMI_PAYMENT_NOTIFICATION_URL)
+            $html .= "<input type='hidden' name='LMI_PAYMENT_NOTIFICATION_URL' value='{$this->LMI_PAYMENT_NOTIFICATION_URL}'/>\n";
+        if ($this->LMI_SUCCESS_URL)
+            $html .= "<input type='hidden' name='LMI_SUCCESS_URL' value='{$this->LMI_SUCCESS_URL}'/>\n";
+        if ($this->LMI_FAILURE_URL)
+            $html .= "<input type='hidden' name='LMI_FAILURE_URL' value='{$this->LMI_FAILURE_URL}'/>\n";
+        if ($this->LMI_PAYER_PHONE_NUMBER)
+            $html .= "<input type='hidden' name='LMI_PAYER_PHONE_NUMBER' value='{$this->LMI_PAYER_PHONE_NUMBER}'/>\n";
+        if ($this->LMI_PAYMENT_METHOD)
+            $html .= "<input type='hidden' name='LMI_PAYMENT_METHOD' value='{$this->LMI_PAYMENT_METHOD}'/>\n";
+        if ($this->LMI_SHOP_ID)
+            $html .= "<input type='hidden' name='LMI_SHOP_ID' value='{$this->LMI_SHOP_ID}'/>\n";
+
+        // Теперь выводим товарыные позиции
+
+
     }
 
 
@@ -235,7 +263,7 @@ class CommonProtocol
     private function __checkForm1() {
         foreach ($this->required as $var) {
             if (!isset($this->$var))
-                throw new Exception('Не хватает переменных для получения формы оплаты. Не задана переменная '.$var);
+                throw new Exception('Не хватает переменных для получения формы оплаты. Не задана переменная "'.$var.'" !');
         }
     }
 

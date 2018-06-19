@@ -77,7 +77,7 @@ class CommonProtocol
     // Замена Payment Notification URL
     // Если присутствует, то запрос Payment Notification будет отправляться по указанному URL
     // (а не установленному в настройках).
-    //Этот параметр игнорируется, если в настройках сайта запрещена замена URL.
+    // Этот параметр игнорируется, если в настройках сайта запрещена замена URL.
     protected $LMI_PAYMENT_NOTIFICATION_URL;
 
     // Замена Success URL

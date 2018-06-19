@@ -9,7 +9,7 @@
 namespace PaymasterSdkPHP\Client;
 
 
-class DirectWebmoneyProtocol
+class DirectProtocol
 {
     // Константа. Параметр всегда должен иметь значение "code"
     protected $response_type;
@@ -39,6 +39,37 @@ class DirectWebmoneyProtocol
     protected $sign;
 
     /**
+     * URLы список
+     */
+    //Получение token
+    protected $urlGetToken = 'https://paymaster.ru/direct/security/token';
+
+    // Отзыв токена
+    protected $urlRevoke = 'https://paymaster.ru/direct/security/revoke';
+
+    // Инициализация платежа
+    protected $urlPaymentInit = 'https://paymaster.ru/direct/payment/init';
+
+    // Проведение платежа
+    protected $urlPaymentComplete = 'https://paymaster.ru/direct/payment/complete';
+
+    /**
+     * Инлайн токенизация карт
+     */
+    // Запрос авторизации
+    protected $urlAuthorizeCard = 'https://paymaster.ru/direct/authorize/card';
+
+    // Подтверждение суммы списания
+    protected $urlAuthorizeConfirm = 'https://paymaster.ru/direct/authorize/confirm';
+
+    /**
+     * Проведение 3DSecure авторизации
+     */
+    // Завершение 3DSecure авторизации
+    protected $urlAuthorizeComplete3ds = 'https://paymaster.ru/direct/authorize/complete3ds';
+
+
+    /**
      * DirectWebmoneyProtocol constructor.
      */
     public function __construct()
@@ -64,6 +95,35 @@ class DirectWebmoneyProtocol
 
         // Возвращаем подпись
         return $this->sign;
+    }
+
+
+    public function auth() {
+
+    }
+
+    public function revoke() {
+
+    }
+
+    public function init(){
+
+    }
+
+    public function complete() {
+
+    }
+
+    public function card() {
+
+    }
+
+    public function confirm() {
+
+    }
+
+    public function complete3ds() {
+
     }
 
 }

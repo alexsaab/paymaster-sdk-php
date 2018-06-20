@@ -27,7 +27,7 @@
 namespace PaymasterSdkPHP\Common;
 
 
-class RestonseObject
+class ResponseObject
 {
     protected $code;
     protected $headers;

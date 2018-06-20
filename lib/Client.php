@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Alex Agafonov
- * Date: 06.06.18
- * Time: 5:43
- */
 
 /**
  * The MIT License
@@ -32,28 +26,28 @@
 
 namespace PaymasterSdkPHP;
 
+use PaymasterSdkPHP\Client\CommonProtocol;
+use PaymasterSdkPHP\Client\DirectProtocol;
+
 class Client {
 
-    public function __construct(Client\ApiClientInterface $apiClient = null, ConfigurationLoaderInterface $configLoader = null, Client\CommonProtocol $commonProtocol = null)
-    {
 
-        if ($apiClient === null) {
-            $apiClient = new Client\CurlClient();
+    /**
+     * @var CommonProtocol
+     */
+    public $client;
+
+
+    /**
+     * Client constructor.
+     * @param $type
+     */
+    public function __construct($type) {
+        if ($type == 'direct') {
+            $this->client = new DirectProtocol();
+        } else {
+            $this->client = new CommonProtocol();
         }
-
-        if ($this->commonProtocol === null) {
-            $this->commonProtocol = new Client\CommonProtocol();
-        }
-
-
-        if ($configLoader === null) {
-            $configLoader = new ConfigurationLoader();
-            $config       = $configLoader->load()->getConfig();
-            $this->setConfig($config);
-            $apiClient->setConfig($config);
-        }
-        $this->attempts  = self::DEFAULT_ATTEMPTS_COUNT;
-        $this->apiClient = $apiClient;
 
     }
 

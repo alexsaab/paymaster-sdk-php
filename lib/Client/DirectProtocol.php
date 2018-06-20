@@ -30,7 +30,7 @@ class DirectProtocol
     protected $client_id;
 
     // URL для перенаправления клиента после успешной авторизации.  НЕ кодированная.
-    protected $redirect;
+    protected $redirect_uri;
 
     // Идентификатор платежной системы
     protected $scope; // 503 тест, рабочие режимы bankcard webmoney
@@ -47,7 +47,11 @@ class DirectProtocol
     /**
      * URLы список
      */
-    //Получение token
+
+    // Авторизация
+    protected $urlGetAuth = 'https://paymaster.ru/direct/security/auth';
+
+    // Получение token
     protected $urlGetToken = 'https://paymaster.ru/direct/security/token';
 
     // Отзыв токена
@@ -103,21 +107,32 @@ class DirectProtocol
     }
 
 
+    /**
+     * Авторизация
+     * @return mixed|\PaymasterSdkPHP\Common\ResponseObject
+     */
     public function auth() {
         $requestArray = array(
-            'response_type' => $this->response_type, // Есть
-            'client_id' => $this->client_id, // нет
-            'redirect_uri' => $this->redirect, // нет
-            'scope' => $this->scope, // нет
-            'sign' => $this->getSign(), // есть
-            'iat' => $this->iat, // есть
+            'response_type' => $this->response_type,
+            'client_id' => $this->client_id,
+            'redirect_uri' => $this->redirect_uri,
+            'type' => $this->type,
+            'scope' => $this->scope,
+            'iat' => $this->iat,
+            'sign' => $this->getSign(),
+            'secret' => $this->secret,
         );
 
-        $respond = $this->request->call($this->urlAuthorizeConfirm, 'POST', $requestArray);
+        $respond = $this->request->call($this->urlGetAuth, 'POST', $requestArray);
+
+        var_dump($this->urlGetAuth);
+
+        var_dump($requestArray);
 
         return $respond;
 
     }
+
 
     public function revoke() {
 
@@ -142,6 +157,72 @@ class DirectProtocol
     public function complete3ds() {
 
     }
+
+    /**
+     * Setter client_id
+     * @param $client_id
+     */
+    public function setClientId($client_id) {
+        $this->client_id = $client_id;
+    }
+
+    /**
+     * Setter client_id
+     * @param $client_id
+     */
+    public function getClientId() {
+        return $this->client_id;
+    }
+
+    /**
+     * Setter scope
+     * @param $scope
+     */
+    public function setScope($scope) {
+        $this->scope = $scope;
+    }
+
+    /**
+     * Setter scope
+     * @param $scope
+     */
+    public function getScope() {
+        return $this->scope;
+    }
+
+    /**
+     * Setter redirect
+     * @param $redirect
+     */
+    public function setRedirectUri($redirect_uri) {
+        $this->redirect_uri = $redirect_uri;
+    }
+
+    /**
+     * Setter redirect
+     * @param $redirect
+     */
+    public function getRedirectUri() {
+        return $this->redirect_uri;
+    }
+
+    /**
+     * Setter secret
+     * @param $secret
+     */
+    public function setSecret($secret) {
+        $this->secret = $secret;
+    }
+
+    /**
+     * Setter secret
+     * @param $secret
+     */
+    public function getSecret() {
+        return $this->secret;
+    }
+
+
 
     /**
      * Setter

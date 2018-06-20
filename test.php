@@ -9,14 +9,18 @@
 
 include_once ('vendor/autoload.php');
 
-use PaymasterSdkPHP\Client\DirectProtocol;
+use PaymasterSdkPHP\Client;
 
-$client = new DirectProtocol();
+$protocol = new Client('direct');
 
-$client->set('client_id','e430408c-3213-4580-9c25-946677a01ea8');
-$client->set('scope','503');
-$client->set('redirect','http://test1.techpaymaster.ru');
-$client->set('secret','12345');
+$protocol->client->set('client_id','e430408c-3213-4580-9c25-946677a01ea8');
+$protocol->client->set('scope','503');
+$protocol->client->set('redirect_uri','http://test1.techpaymaster.ru');
+$protocol->client->set('secret','12345');
 
 
-var_dump($client->auth());
+var_dump($protocol->client->auth());
+
+var_dump($protocol->client->getSign());
+
+

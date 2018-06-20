@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: alexey
- * Date: 12.06.18
- * Time: 18:20
- */
 
 /**
  * The MIT License

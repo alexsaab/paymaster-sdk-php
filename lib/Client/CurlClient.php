@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Alex Agafonov
- * Date: 06.06.18
- * Time: 6:21
- */
-
 
 /**
  * The MIT License
@@ -34,8 +27,8 @@
 namespace PaymasterSdkPHP\Client;
 
 use Psr\Log\LoggerInterface;
-use PaymasterSdkPHP\Common\RestonseObject;
-use PaymasterSdkPHP\Helpers\RawHeaderParser;
+use PaymasterSdkPHP\Common\ResponseObject;
+use PaymasterSdkPHP\Helpers\RawHeadersParser;
 
 
 /**
@@ -44,6 +37,16 @@ use PaymasterSdkPHP\Helpers\RawHeaderParser;
  */
 class CurlClient implements ApiClientInterface
 {
+
+    /**
+     * @var $cookies
+     */
+    private $cookie;
+
+    /**
+     * @var string
+     */
+    private $cookieDir = '/../../cookies/';
 
     /**
      * @var int
@@ -78,6 +81,15 @@ class CurlClient implements ApiClientInterface
      */
     private $logger;
 
+
+    /**
+     * CurlClient constructor.
+     */
+    public function __construct()
+    {
+        $this->cookie = tempnam(__DIR__.$this->cookieDir, 'COO_');
+    }
+
     /**
      * @param LoggerInterface|null $logger
      */
@@ -89,7 +101,7 @@ class CurlClient implements ApiClientInterface
     /**
      * @inheritdoc
      */
-    public function call($url, $method,$httpBody = null, $headers = array())
+    public function call($url, $method, $httpBody = null, $headers = array())
     {
         if ($this->logger !== null) {
             $message = 'Send request: ' . $method . ' ' . $url;
@@ -121,6 +133,12 @@ class CurlClient implements ApiClientInterface
         $this->setCurlOption(CURLOPT_CONNECTTIMEOUT, $this->connectionTimeout);
 
         $this->setCurlOption(CURLOPT_TIMEOUT, $this->timeout);
+
+        $this->setCurlOption(CURLOPT_COOKIESESSION, true );
+
+        $this->setCurlOption(CURLOPT_COOKIEJAR, $this->cookie );
+
+        $this->setCurlOption(CURLOPT_COOKIEFILE, $this->cookie );
 
         list($httpHeaders, $httpBody, $responseInfo) = $this->sendRequest();
 

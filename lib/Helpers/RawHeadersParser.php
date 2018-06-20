@@ -26,7 +26,7 @@
 namespace PaymasterSdkPHP\Helpers;
 
 
-class RawHeaderParser
+class RawHeadersParser
 {
 
     public static function parse($rawHeaders)

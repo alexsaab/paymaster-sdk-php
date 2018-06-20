@@ -3,7 +3,7 @@
 /**
  * The MIT License
  *
- * Copyright (c) 2017 Paymaster LLC
+ * Copyright (c) 2018 Paymaster LLC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,9 +24,45 @@
  * THE SOFTWARE.
  */
 
-namespace PaymasterSdkPHP\Helpers\Config;
+namespace PaymasterSdkPHP\Common;
 
-interface ConfigurationLoaderInterface
+
+class RestonseObject
 {
-    public function getConfig();
+    protected $code;
+    protected $headers;
+    protected $body;
+    public function __construct($config = null)
+    {
+        if (isset($config['headers'])) {
+            $this->headers = $config['headers'];
+        }
+        if (isset($config['body'])) {
+            $this->body = $config['body'];
+        }
+        if (isset($config['code'])) {
+            $this->code = $config['code'];
+        }
+    }
+    /**
+     * @return mixed
+     */
+    public function getHeaders()
+    {
+        return $this->headers;
+    }
+    /**
+     * @return mixed
+     */
+    public function getBody()
+    {
+        return $this->body;
+    }
+    /**
+     * @return mixed
+     */
+    public function getCode()
+    {
+        return $this->code;
+    }
 }

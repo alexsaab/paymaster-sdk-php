@@ -9,8 +9,17 @@
 namespace PaymasterSdkPHP\Client;
 
 
+use PaymasterSdkPHP\Client\CurlClient;
+
+
 class DirectProtocol
 {
+
+    /*
+     * Объект для запросов
+     */
+    protected $request;
+
     // Константа. Параметр всегда должен иметь значение "code"
     protected $response_type;
 
@@ -24,13 +33,10 @@ class DirectProtocol
     protected $redirect;
 
     // Идентификатор платежной системы
-    protected $scope;
+    protected $scope; // 503 тест, рабочие режимы bankcard webmoney
 
-    // Секретный ключ  DIRECT от сайта
+    // Секретный ключ DIRECT от сайта
     protected $secret;
-
-    // Файл cookies
-    public $cookie_file;
 
     // тип запроса
     protected $type;
@@ -70,14 +76,13 @@ class DirectProtocol
 
 
     /**
-     * DirectWebmoneyProtocol constructor.
+     * DirectPaymasterProtocol constructor.
      */
     public function __construct()
     {
+        $this->request = new CurlClient();
         $this->response_type = 'code';
         $this->iat = time();
-        $this->scope = '503';
-        $this->cookie_file = __DIR__.'/../../cookies.txt';
         $this->type = 'rest';
     }
 
@@ -99,6 +104,18 @@ class DirectProtocol
 
 
     public function auth() {
+        $requestArray = array(
+            'response_type' => $this->response_type, // Есть
+            'client_id' => $this->client_id, // нет
+            'redirect_uri' => $this->redirect, // нет
+            'scope' => $this->scope, // нет
+            'sign' => $this->getSign(), // есть
+            'iat' => $this->iat, // есть
+        );
+
+        $respond = $this->request->call($this->urlAuthorizeConfirm, 'POST', $requestArray);
+
+        return $respond;
 
     }
 
@@ -125,5 +142,25 @@ class DirectProtocol
     public function complete3ds() {
 
     }
+
+    /**
+     * Setter
+     * @param $variable
+     * @param $value
+     */
+    public function set($variable, $value) {
+        $this->$variable = $value;
+    }
+
+    /**
+     * Getter
+     * @param $variable
+     * @param $value
+     */
+    public function get($variable, $value) {
+        $this->$variable = $value;
+    }
+
+
 
 }

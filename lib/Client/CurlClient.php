@@ -10,7 +10,7 @@
 /**
  * The MIT License
  *
- * Copyright (c) 2017 Paymaster LLC
+ * Copyright (c) 2018 Paymaster LLC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,13 +33,10 @@
 
 namespace PaymasterSdkPHP\Client;
 
-//use Psr\Log\LoggerInterface;
-//use PaymasterSdkPHP\Common\Exceptions\ApiConnectionException;
-//use PaymasterSdkPHP\Common\Exceptions\ApiException;
-//use PaymasterSdkPHP\Common\Exceptions\AuthorizeException;
-//use PaymasterSdkPHP\Common\HttpVerb;
-//use PaymasterSdkPHP\Common\ResponseObject;
-//use PaymasterSdkPHP\Helpers\RawHeadersParser;
+use Psr\Log\LoggerInterface;
+use PaymasterSdkPHP\Common\RestonseObject;
+use PaymasterSdkPHP\Helpers\RawHeaderParser;
+
 
 /**
  * Class CurlClient
@@ -47,20 +44,6 @@ namespace PaymasterSdkPHP\Client;
  */
 class CurlClient implements ApiClientInterface
 {
-    /**
-     * @var array
-     */
-    private $config;
-
-    /**
-     * @var string
-     */
-    private $shopId;
-
-    /**
-     * @var string
-     */
-    private $shopPassword;
 
     /**
      * @var int
@@ -106,13 +89,10 @@ class CurlClient implements ApiClientInterface
     /**
      * @inheritdoc
      */
-    public function call($path, $method, $queryParams, $httpBody = null, $headers = array())
+    public function call($url, $method,$httpBody = null, $headers = array())
     {
         if ($this->logger !== null) {
-            $message = 'Send request: ' . $method . ' ' . $path;
-            if (!empty($queryParams)) {
-                $message .= ' with query params: ' . json_encode($queryParams);
-            }
+            $message = 'Send request: ' . $method . ' ' . $url;
             if (!empty($httpBody)) {
                 $message .= ' with body: ' . $httpBody;
             }
@@ -120,12 +100,6 @@ class CurlClient implements ApiClientInterface
                 $message .= ' with headers: ' . json_encode($headers);
             }
             $this->logger->info($message);
-        }
-
-        $url = $this->getUrl() . $path;
-
-        if (!empty($queryParams)) {
-            $url = $url . '?' . http_build_query($queryParams);
         }
 
         $headers = $this->prepareHeaders($headers);
@@ -140,13 +114,7 @@ class CurlClient implements ApiClientInterface
 
         $this->setCurlOption(CURLOPT_BINARYTRANSFER, true);
 
-        if (!$this->shopId || !$this->shopPassword) {
-            throw new AuthorizeException('shopId or shopPassword not set');
-        } else {
-            $this->setCurlOption(CURLOPT_USERPWD, "{$this->shopId}:{$this->shopPassword}");
-        }
-
-        $this->setBody($method, $httpBody);
+        $this->setBody($httpBody);
 
         $this->setCurlOption(CURLOPT_HTTPHEADER, $headers);
 
@@ -230,63 +198,14 @@ class CurlClient implements ApiClientInterface
     }
 
     /**
-     * @param $method
      * @param $httpBody
-     * @throws ApiException
      */
-    public function setBody($method, $httpBody)
+    public function setBody($httpBody)
     {
-        switch ($method) {
-            case HttpVerb::POST:
-                $this->setCurlOption(CURLOPT_POST, true);
-                $this->setCurlOption(CURLOPT_POSTFIELDS, $httpBody);
-                break;
-            case HttpVerb::PUT:
-                $this->setCurlOption(CURLOPT_CUSTOMREQUEST, HttpVerb::PUT);
-                $this->setCurlOption(CURLOPT_POSTFIELDS, $httpBody);
-                break;
-            case HttpVerb::DELETE:
-                $this->setCurlOption(CURLOPT_CUSTOMREQUEST, HttpVerb::DELETE);
-                $this->setCurlOption(CURLOPT_POSTFIELDS, $httpBody);
-                break;
-            case HttpVerb::PATCH:
-                $this->setCurlOption(CURLOPT_CUSTOMREQUEST, HttpVerb::PATCH);
-                $this->setCurlOption(CURLOPT_POSTFIELDS, $httpBody);
-                break;
-            case HttpVerb::OPTIONS:
-                $this->setCurlOption(CURLOPT_CUSTOMREQUEST, HttpVerb::OPTIONS);
-                $this->setCurlOption(CURLOPT_POSTFIELDS, $httpBody);
-                break;
-            case HttpVerb::HEAD:
-                $this->setCurlOption(CURLOPT_NOBODY, true);
-                break;
-            case HttpVerb::GET:
-                $this->setCurlOption(CURLOPT_HTTPGET, true);
-                break;
-            default:
-                throw new ApiException('Invalid method verb: ' . $method);
-        }
+        $this->setCurlOption(CURLOPT_POST, true);
+        $this->setCurlOption(CURLOPT_POSTFIELDS, $httpBody);
     }
 
-    /**
-     * @param mixed $shopId
-     * @return CurlClient
-     */
-    public function setShopId($shopId)
-    {
-        $this->shopId = $shopId;
-        return $this;
-    }
-
-    /**
-     * @param mixed $shopPassword
-     * @return CurlClient
-     */
-    public function setShopPassword($shopPassword)
-    {
-        $this->shopPassword = $shopPassword;
-        return $this;
-    }
 
     /**
      * @return mixed
@@ -320,21 +239,6 @@ class CurlClient implements ApiClientInterface
         $this->connectionTimeout = $connectionTimeout;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getConfig()
-    {
-        return $this->config;
-    }
-
-    /**
-     * @param mixed $config
-     */
-    public function setConfig($config)
-    {
-        $this->config = $config;
-    }
 
     /**
      * @param string $error
@@ -360,14 +264,6 @@ class CurlClient implements ApiClientInterface
         throw new ApiConnectionException($msg);
     }
 
-    /**
-     * @return mixed
-     */
-    private function getUrl()
-    {
-        $config = $this->config;
-        return $config['url'];
-    }
 
     /**
      * @param bool $keepAlive

@@ -49,7 +49,7 @@ interface ApiClientInterface
      * @param $headers
      * @return mixed
      */
-    public function call($path, $method, $queryParams, $httpBody = null, $headers = array());
+    public function call($path, $method, $httpBody = null, $headers = array());
 
     /**
      * @param LoggerInterface|null $logger

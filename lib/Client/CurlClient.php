@@ -63,13 +63,6 @@ class CurlClient implements ApiClientInterface
      */
     private $keepAlive = true;
 
-    /**
-     * @var array
-     */
-    private $defaultHeaders = array(
-        'Content-Type' => 'application/json',
-        'Accept' => 'application/json'
-    );
 
     /**
      * @var resource
@@ -101,7 +94,7 @@ class CurlClient implements ApiClientInterface
     /**
      * @inheritdoc
      */
-    public function call($url, $method, $httpBody = null, $headers = array())
+    public function call($url, $method, $fields = null, $headers = array())
     {
         if ($this->logger !== null) {
             $message = 'Send request: ' . $method . ' ' . $url;
@@ -114,31 +107,43 @@ class CurlClient implements ApiClientInterface
             $this->logger->info($message);
         }
 
-        $headers = $this->prepareHeaders($headers);
-
         $this->initCurl();
 
         $this->setCurlOption(CURLOPT_URL, $url);
 
         $this->setCurlOption(CURLOPT_RETURNTRANSFER, true);
 
+        $this->setCurlOption(CURLOPT_FOLLOWLOCATION, true);
+
+        $this->setCurlOption(CURLOPT_SSL_VERIFYPEER, false);
+
+        $this->setCurlOption(CURLOPT_SSL_VERIFYHOST, false);
+
         $this->setCurlOption(CURLOPT_HEADER, true);
 
-        $this->setCurlOption(CURLOPT_BINARYTRANSFER, true);
+        $this->setCurlOption(CURLOPT_POST, true);
 
-        $this->setBody($httpBody);
+        $this->setCurlOption(CURLOPT_ENCODING, "");
 
-        $this->setCurlOption(CURLOPT_HTTPHEADER, $headers);
+        var_dump($fields);
+
+        $this->setCurlOption(CURLOPT_POSTFIELDS, $fields);
+
+        if (!empty($headers)) {
+            $this->setCurlOption(CURLOPT_HTTPHEADER, $headers);
+        }
 
         $this->setCurlOption(CURLOPT_CONNECTTIMEOUT, $this->connectionTimeout);
 
         $this->setCurlOption(CURLOPT_TIMEOUT, $this->timeout);
 
-        $this->setCurlOption(CURLOPT_COOKIESESSION, true );
+        $this->setCurlOption(CURLOPT_COOKIESESSION, true);
 
         $this->setCurlOption(CURLOPT_COOKIEJAR, $this->cookie );
 
         $this->setCurlOption(CURLOPT_COOKIEFILE, $this->cookie );
+
+
 
         list($httpHeaders, $httpBody, $responseInfo) = $this->sendRequest();
 
@@ -160,6 +165,21 @@ class CurlClient implements ApiClientInterface
             'headers' => $httpHeaders,
             'body' => $httpBody
         ));
+    }
+
+    /**
+     * Функция которая возвращает закодированную строку без преобразования знаков /, \, пробел
+     * @param $fields
+     * @return string
+     */
+    public function _http_build_query($fields) {
+        $strings = array();
+        foreach ($fields as $name=>$value) {
+            $strings[] = "{$name}={$value}";
+        }
+        $string = implode('&', $strings);
+
+        return $string;
     }
 
     /**
@@ -214,16 +234,6 @@ class CurlClient implements ApiClientInterface
 
         return array($httpHeaders, $httpBody, $responseInfo);
     }
-
-    /**
-     * @param $httpBody
-     */
-    public function setBody($httpBody)
-    {
-        $this->setCurlOption(CURLOPT_POST, true);
-        $this->setCurlOption(CURLOPT_POSTFIELDS, $httpBody);
-    }
-
 
     /**
      * @return mixed
@@ -293,17 +303,4 @@ class CurlClient implements ApiClientInterface
         return $this;
     }
 
-    /**
-     * @param $headers
-     * @return array
-     */
-    private function prepareHeaders($headers)
-    {
-        $headers = array_merge($this->defaultHeaders, $headers);
-        $headers = array_map(function ($key, $value) {
-            return $key . ":" . $value;
-        }, array_keys($headers), $headers);
-
-        return $headers;
-    }
 }

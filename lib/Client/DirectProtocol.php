@@ -96,12 +96,11 @@ class DirectProtocol
      */
     public function getSign() {
         // тело подписи
-        $body = 'response_type=' . $this->response_type . '&' . 'client_id=' . $this->client_id . '&' . 'redirect_uri=' . $this->redirect_uri . '&' . 'scope=' . $this->scope . '&' . 'type=' . $this->type;
+        $body = 'response_type=' . $this->response_type . '&' . 'client_id=' . $this->client_id . '&' . 'redirect_uri=' . urlencode($this->redirect_uri) . '&' . 'scope=' . $this->scope . '&' . 'type=' . $this->type;
         // строка подписи
         $clear_sign = $body . ';' . $this->iat . ';' . $this->secret;
         // вычисление подписи
         $this->sign = base64_encode(hash('sha256', $clear_sign, true));
-
         // Возвращаем подпись
         return $this->sign;
     }
@@ -112,25 +111,29 @@ class DirectProtocol
      * @return mixed|\PaymasterSdkPHP\Common\ResponseObject
      */
     public function auth() {
-        $requestArray = array(
+        $fields = array(
             'response_type' => $this->response_type,
             'client_id' => $this->client_id,
             'redirect_uri' => $this->redirect_uri,
             'type' => $this->type,
             'scope' => $this->scope,
             'iat' => $this->iat,
-            'sign' => $this->getSign(),
-            'secret' => $this->secret,
+            'sign' => $this->getSign()
         );
 
-        $respond = $this->request->call($this->urlGetAuth, 'POST', $requestArray);
+        $headers = array(
+            'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'accept-encoding: gzip, deflate, br',
+            'accept-language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,de;q=0.6',
+            'cache-control: max-age=0',
+            'upgrade-insecure-requests: 1',
+            'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36',
+            'x-client-data: CJS2yQEIo7bJAQipncoBCKijygE=',
+            'x-compress: null',
+        );
 
-        var_dump($this->urlGetAuth);
-
-        var_dump($requestArray);
-
+        $respond = $this->request->call($this->urlGetAuth, 'POST', $fields, $headers);
         return $respond;
-
     }
 
 
@@ -241,7 +244,5 @@ class DirectProtocol
     public function get($variable, $value) {
         $this->$variable = $value;
     }
-
-
 
 }

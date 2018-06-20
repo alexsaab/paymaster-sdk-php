@@ -29,9 +29,9 @@ namespace PaymasterSdkPHP\Common;
 
 class ResponseObject
 {
-    protected $code;
-    protected $headers;
-    protected $body;
+    public $code;
+    public $headers;
+    public $body;
     public function __construct($config = null)
     {
         if (isset($config['headers'])) {

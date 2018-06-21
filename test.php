@@ -21,5 +21,5 @@ $protocol->client->setSecret('12345');
 
 var_dump($protocol->client->auth()->body);
 
-
+var_dump($protocol->client->getSign());
 

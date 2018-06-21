@@ -123,10 +123,6 @@ class CurlClient implements ApiClientInterface
 
         $this->setCurlOption(CURLOPT_POST, true);
 
-        $this->setCurlOption(CURLOPT_ENCODING, "");
-
-        var_dump($fields);
-
         $this->setCurlOption(CURLOPT_POSTFIELDS, $fields);
 
         if (!empty($headers)) {
@@ -139,11 +135,9 @@ class CurlClient implements ApiClientInterface
 
         $this->setCurlOption(CURLOPT_COOKIESESSION, true);
 
-        $this->setCurlOption(CURLOPT_COOKIEJAR, $this->cookie );
+        $this->setCurlOption(CURLOPT_COOKIEJAR, $this->cookie);
 
-        $this->setCurlOption(CURLOPT_COOKIEFILE, $this->cookie );
-
-
+        $this->setCurlOption(CURLOPT_COOKIEFILE, $this->cookie);
 
         list($httpHeaders, $httpBody, $responseInfo) = $this->sendRequest();
 

@@ -35,6 +35,12 @@ class DirectProtocol
     // Идентификатор платежной системы
     protected $scope; // 503 тест, рабочие режимы bankcard webmoney
 
+    // Временный токен, присвоенный при запросе на авторизацию
+    protected $code;
+
+    // Константа. Всегда должен быть установлен на "authorization_code"
+    protected $grant_type;
+
     // Секретный ключ DIRECT от сайта
     protected $secret;
 
@@ -88,6 +94,7 @@ class DirectProtocol
         $this->response_type = 'code';
         $this->iat = time();
         $this->type = 'rest';
+        $this->grant_type = "authorization_code";
     }
 
 
@@ -122,17 +129,29 @@ class DirectProtocol
         );
 
         $headers = array(
-            'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'accept-encoding: gzip, deflate, br',
-            'accept-language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7,de;q=0.6',
-            'cache-control: max-age=0',
-            'upgrade-insecure-requests: 1',
-            'user-agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36',
-            'x-client-data: CJS2yQEIo7bJAQipncoBCKijygE=',
-            'x-compress: null',
+            "iat: {$this->iat}",
+            "sign: {$this->getSign()}",
         );
 
         $respond = $this->request->call($this->urlGetAuth, 'POST', $fields, $headers);
+        return $respond;
+    }
+
+    /**
+     * Получение токена
+     * @return mixed|\PaymasterSdkPHP\Common\ResponseObject
+     */
+    public function token() {
+        $fields = array(
+            'client_id' => $this->client_id,
+            'code' => $this->code,
+            'grand_type' => $this->grant_type,
+            'redirect_uri' => $this->redirect_uri,
+            'type' => $this->type,
+            'iat' => $this->iat,
+            'sign' => $this->getSign()
+        );
+        $respond = $this->request->call($this->urlGetToken, 'POST', $fields);
         return $respond;
     }
 
@@ -170,7 +189,7 @@ class DirectProtocol
     }
 
     /**
-     * Setter client_id
+     * Getter client_id
      * @param $client_id
      */
     public function getClientId() {
@@ -186,7 +205,7 @@ class DirectProtocol
     }
 
     /**
-     * Setter scope
+     * Getter scope
      * @param $scope
      */
     public function getScope() {
@@ -202,7 +221,7 @@ class DirectProtocol
     }
 
     /**
-     * Setter redirect
+     * Getter redirect
      * @param $redirect
      */
     public function getRedirectUri() {
@@ -218,11 +237,43 @@ class DirectProtocol
     }
 
     /**
-     * Setter secret
+     * Gettersecret
      * @param $secret
      */
     public function getSecret() {
         return $this->secret;
+    }
+
+    /**
+     * Setter code
+     * @param $code
+     */
+    public function setCode($code) {
+        $this->code = $code;
+    }
+
+    /**
+     * Getter code
+     * @param $code
+     */
+    public function getCode() {
+        return $this->code;
+    }
+
+    /**
+     * Setter grand_type
+     * @param $grand_type
+     */
+    public function setGrandType($grand_type) {
+        $this->grand_type = $grand_type;
+    }
+
+    /**
+     * Getter grand_type
+     * @param $grand_type
+     */
+    public function getGrandType() {
+        return $this->grand_type;
     }
 
 

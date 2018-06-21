@@ -29,6 +29,12 @@ class DirectProtocol
     // Идентификатор Продавца в системе PayMaster
     protected $client_id;
 
+    // Идентификатор Проавца в системе PayMaster (тоже самое, что и client_id)
+    protected $merchant_id;
+
+    // Идентификатор платежа в системе обязательный параметр, номер транзакции
+    protected $merchant_transaction_id;
+
     // URL для перенаправления клиента после успешной авторизации.  НЕ кодированная.
     protected $redirect_uri;
 
@@ -37,6 +43,9 @@ class DirectProtocol
 
     // Временный токен, присвоенный при запросе на авторизацию
     protected $code;
+
+    // Постоянный token доступа
+    protected $access_token;
 
     // Константа. Всегда должен быть установлен на "authorization_code"
     protected $grant_type;
@@ -101,7 +110,8 @@ class DirectProtocol
     /**
      * Получение подписи
      */
-    public function getSign() {
+    public function getSign()
+    {
         // тело подписи
         $body = 'response_type=' . $this->response_type . '&' . 'client_id=' . $this->client_id . '&' . 'redirect_uri=' . urlencode($this->redirect_uri) . '&' . 'scope=' . $this->scope . '&' . 'type=' . $this->type;
         // строка подписи
@@ -117,7 +127,8 @@ class DirectProtocol
      * Авторизация
      * @return mixed|\PaymasterSdkPHP\Common\ResponseObject
      */
-    public function auth() {
+    public function auth()
+    {
         $fields = array(
             'response_type' => $this->response_type,
             'client_id' => $this->client_id,
@@ -128,12 +139,10 @@ class DirectProtocol
             'sign' => $this->getSign()
         );
 
-        $headers = array(
-            "iat: {$this->iat}",
-            "sign: {$this->getSign()}",
-        );
+        var_dump($fields);
 
-        $respond = $this->request->call($this->urlGetAuth, 'POST', $fields, $headers);
+
+        $respond = $this->request->call($this->urlGetAuth, 'POST', $fields);
         return $respond;
     }
 
@@ -141,7 +150,8 @@ class DirectProtocol
      * Получение токена
      * @return mixed|\PaymasterSdkPHP\Common\ResponseObject
      */
-    public function token() {
+    public function token()
+    {
         $fields = array(
             'client_id' => $this->client_id,
             'code' => $this->code,
@@ -151,32 +161,53 @@ class DirectProtocol
             'iat' => $this->iat,
             'sign' => $this->getSign()
         );
+
         $respond = $this->request->call($this->urlGetToken, 'POST', $fields);
         return $respond;
     }
 
 
-    public function revoke() {
+    /**
+     * Отзыв токена
+     * @return mixed|\PaymasterSdkPHP\Common\ResponseObject
+     */
+    public function revoke()
+    {
+        $fields = array(
+            'client_id' => $this->client_id,
+            'access_token' => $this->access_token,
+            'type' => $this->type,
+            'iat' => $this->iat,
+            'sign' => $this->getSign()
+        );
+
+        $respond = $this->request->call($this->urlRevoke, 'POST', $fields);
+        return $respond;
+    }
+
+
+    public function init()
+    {
 
     }
 
-    public function init(){
+    public function complete()
+    {
 
     }
 
-    public function complete() {
+    public function card()
+    {
 
     }
 
-    public function card() {
+    public function confirm()
+    {
 
     }
 
-    public function confirm() {
-
-    }
-
-    public function complete3ds() {
+    public function complete3ds()
+    {
 
     }
 
@@ -184,23 +215,48 @@ class DirectProtocol
      * Setter client_id
      * @param $client_id
      */
-    public function setClientId($client_id) {
+    public function setClientId($client_id)
+    {
+        $this->merchant_id_id = $client_id;
         $this->client_id = $client_id;
+
     }
 
     /**
      * Getter client_id
      * @param $client_id
      */
-    public function getClientId() {
+    public function getClientId()
+    {
         return $this->client_id;
+    }
+
+    /**
+     * Setter merchant_id
+     * @param $client_id
+     */
+    public function setMerchantId($merchant_id)
+    {
+        $this->merchant_id_id = $merchant_id;
+        $this->client_id = $merchant_id;
+
+    }
+
+    /**
+     * Getter merchant_id
+     * @param $client_id
+     */
+    public function getMerchantId()
+    {
+        return $this->merchant_id;
     }
 
     /**
      * Setter scope
      * @param $scope
      */
-    public function setScope($scope) {
+    public function setScope($scope)
+    {
         $this->scope = $scope;
     }
 
@@ -208,7 +264,8 @@ class DirectProtocol
      * Getter scope
      * @param $scope
      */
-    public function getScope() {
+    public function getScope()
+    {
         return $this->scope;
     }
 
@@ -216,7 +273,8 @@ class DirectProtocol
      * Setter redirect
      * @param $redirect
      */
-    public function setRedirectUri($redirect_uri) {
+    public function setRedirectUri($redirect_uri)
+    {
         $this->redirect_uri = $redirect_uri;
     }
 
@@ -224,7 +282,8 @@ class DirectProtocol
      * Getter redirect
      * @param $redirect
      */
-    public function getRedirectUri() {
+    public function getRedirectUri()
+    {
         return $this->redirect_uri;
     }
 
@@ -232,7 +291,8 @@ class DirectProtocol
      * Setter secret
      * @param $secret
      */
-    public function setSecret($secret) {
+    public function setSecret($secret)
+    {
         $this->secret = $secret;
     }
 
@@ -240,7 +300,8 @@ class DirectProtocol
      * Gettersecret
      * @param $secret
      */
-    public function getSecret() {
+    public function getSecret()
+    {
         return $this->secret;
     }
 
@@ -248,7 +309,8 @@ class DirectProtocol
      * Setter code
      * @param $code
      */
-    public function setCode($code) {
+    public function setCode($code)
+    {
         $this->code = $code;
     }
 
@@ -256,7 +318,8 @@ class DirectProtocol
      * Getter code
      * @param $code
      */
-    public function getCode() {
+    public function getCode()
+    {
         return $this->code;
     }
 
@@ -264,18 +327,37 @@ class DirectProtocol
      * Setter grand_type
      * @param $grand_type
      */
-    public function setGrandType($grand_type) {
+    public function setGrandType($grand_type)
+    {
         $this->grand_type = $grand_type;
+    }
+
+    /**
+     * Getter access_token
+     * @param $access_token
+     */
+    public function getGrandType()
+    {
+        return $this->access_token;
+    }
+
+    /**
+     * Setter access_token
+     * @param $access_token
+     */
+    public function setAccessToken($access_token)
+    {
+        $this->access_token = $access_token;
     }
 
     /**
      * Getter grand_type
      * @param $grand_type
      */
-    public function getGrandType() {
-        return $this->grand_type;
+    public function getAccessToken()
+    {
+        return $this->access_token;
     }
-
 
 
     /**
@@ -283,7 +365,8 @@ class DirectProtocol
      * @param $variable
      * @param $value
      */
-    public function set($variable, $value) {
+    public function set($variable, $value)
+    {
         $this->$variable = $value;
     }
 
@@ -292,7 +375,8 @@ class DirectProtocol
      * @param $variable
      * @param $value
      */
-    public function get($variable, $value) {
+    public function get($variable, $value)
+    {
         $this->$variable = $value;
     }
 

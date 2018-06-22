@@ -19,7 +19,5 @@ $protocol->client->setRedirectUri('http://test1.techpaymaster.ru');
 $protocol->client->setSecret('12345');
 
 
-var_dump($protocol->client->auth()->body);
-
-var_dump($protocol->client->getSign());
+var_dump($protocol->client->auth()->body());
 

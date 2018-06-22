@@ -101,7 +101,7 @@ class DirectProtocol
     {
         $this->request = new CurlClient();
         $this->response_type = 'code';
-        $this->iat = time();
+        $this->iat = strval(time());
         $this->type = 'rest';
         $this->grant_type = "authorization_code";
     }
@@ -135,12 +135,9 @@ class DirectProtocol
             'redirect_uri' => $this->redirect_uri,
             'type' => $this->type,
             'scope' => $this->scope,
-            'iat' => $this->iat,
-            'sign' => $this->getSign()
+            'sign' => $this->getSign(),
+            'iat' => $this->iat
         );
-
-        var_dump($fields);
-
 
         $respond = $this->request->call($this->urlGetAuth, 'POST', $fields);
         return $respond;
@@ -163,6 +160,7 @@ class DirectProtocol
         );
 
         $respond = $this->request->call($this->urlGetToken, 'POST', $fields);
+
         return $respond;
     }
 

@@ -47,6 +47,15 @@ class DirectProtocol
     // Постоянный token доступа
     protected $access_token;
 
+    // Тип токена
+    protected $token_type;
+
+    // Вермя действия (истечения)
+    protected $expires_in;
+
+    // Идентификатор учетной записи
+    protected $account_identifier;
+
     // Константа. Всегда должен быть установлен на "authorization_code"
     protected $grant_type;
 
@@ -58,6 +67,9 @@ class DirectProtocol
 
     //  подпись
     protected $sign;
+
+
+
 
     /**
      * URLы список
@@ -133,8 +145,8 @@ class DirectProtocol
             'response_type' => $this->response_type,
             'client_id' => $this->client_id,
             'redirect_uri' => $this->redirect_uri,
-            'type' => $this->type,
             'scope' => $this->scope,
+            'type' => $this->type,
             'sign' => $this->getSign(),
             'iat' => $this->iat
         );
@@ -159,7 +171,18 @@ class DirectProtocol
             'sign' => $this->getSign()
         );
 
-        $respond = $this->request->call($this->urlGetToken, 'POST', $fields);
+        try {
+            $respond = $this->request->call($this->urlGetToken, 'POST', $fields);
+            $respondObject = json_decode($respond->body);
+            $this->access_token = $respondObject->access_token;
+            $this->token_type = $respondObject->token_type;
+            $this->expires_in = $respondObject->expires_in;
+            $this->account_identifier = $respondObject->account_identifier;
+
+        } catch (\Exception $exception) {
+            echo 'Error: '.$exception->getMessage();
+        }
+
 
         return $respond;
     }

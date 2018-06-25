@@ -29,9 +29,10 @@ namespace PaymasterSdkPHP\Common;
 
 class ResponseObject
 {
-    public $code;
-    public $headers;
-    public $body;
+    protected $code;
+    protected $headers;
+    protected $body;
+
     public function __construct($config = null)
     {
         if (isset($config['headers'])) {
@@ -44,6 +45,7 @@ class ResponseObject
             $this->code = $config['code'];
         }
     }
+
     /**
      * @return mixed
      */
@@ -51,6 +53,7 @@ class ResponseObject
     {
         return $this->headers;
     }
+
     /**
      * @return mixed
      */
@@ -58,6 +61,7 @@ class ResponseObject
     {
         return $this->body;
     }
+
     /**
      * @return mixed
      */

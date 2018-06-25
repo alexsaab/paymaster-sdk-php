@@ -19,7 +19,6 @@ $protocol->client->setRedirectUri('http://test1.techpaymaster.ru');
 $protocol->client->setSecret('12345');
 
 
-// временный токен K0RY1J0X9g
-
-echo $protocol->client->auth()->body;
+echo "Временный токен: ".$protocol->client->auth()."\n";
+echo "Постоянный токен: ".$protocol->client->token()."\n";
 

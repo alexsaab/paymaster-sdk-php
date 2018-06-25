@@ -202,6 +202,16 @@ class CommonProtocol
 
     }
 
+
+    /**
+     * @param LoggerInterface|null $logger
+     */
+    public function setLogger($logger)
+    {
+        $this->logger = $logger;
+    }
+
+
     /**
      * Setter
      * @param $variable

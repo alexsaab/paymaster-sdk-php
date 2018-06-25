@@ -7,7 +7,7 @@
  */
 
 
-include_once ('vendor/autoload.php');
+include_once ('../vendor/autoload.php');
 
 use PaymasterSdkPHP\Client;
 
@@ -21,4 +21,6 @@ $protocol->client->setSecret('12345');
 
 echo "Временный токен: ".$protocol->client->auth()."\n";
 echo "Постоянный токен: ".$protocol->client->token()."\n";
+echo "Подготовка: ".$protocol->client->init(rand(100,100500), '120', 'test')."\n";
+echo "Проведение платежа: ".$protocol->client->complete()."\n";
 

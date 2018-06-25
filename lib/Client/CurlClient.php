@@ -29,6 +29,7 @@ namespace PaymasterSdkPHP\Client;
 use Psr\Log\LoggerInterface;
 use PaymasterSdkPHP\Common\ResponseObject;
 use PaymasterSdkPHP\Helpers\RawHeadersParser;
+use PaymasterSdkPHP\Common\Exceptions\ApiException;
 
 
 /**

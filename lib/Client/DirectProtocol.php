@@ -11,6 +11,7 @@ namespace PaymasterSdkPHP\Client;
 use PaymasterSdkPHP\Client\CurlClient;
 
 
+
 class DirectProtocol
 {
 
@@ -33,6 +34,21 @@ class DirectProtocol
 
     // Идентификатор платежа в системе обязательный параметр, номер транзакции
     protected $merchant_transaction_id;
+
+    // Сумма платежа
+    protected $amount;
+
+    // Валюта платежа
+    protected $currency;
+
+    // Описание платежа
+    protected $description;
+
+    // Номер транзации в системе Paymaster
+    protected $processor_transaction_id;
+
+    // Номер платежа в системе
+    protected $payment_id;
 
     // URL для перенаправления клиента после успешной авторизации.  НЕ кодированная.
     protected $redirect_uri;
@@ -58,6 +74,7 @@ class DirectProtocol
 
     // Константа. Всегда должен быть установлен на "authorization_code"
     protected $grant_type;
+
 
     // Секретный ключ DIRECT от сайта
     protected $secret;
@@ -120,58 +137,83 @@ class DirectProtocol
     {
         $this->request = new CurlClient();
         $this->response_type = 'code';
-        $this->iat = strval(time());
+        $this->getIat(); // установка текущего времени
         $this->type = 'rest';
-        $this->grant_type = "authorization_code";
+        $this->grant_type = 'authorization_code';
+        $this->currency = 'RUB';
+
     }
 
 
     /**
      * Получение подписи
      */
-    public function getSign()
+    public function getSign($type = null)
     {
-        // тело подписи
-        $body = 'response_type=' . $this->response_type . '&' . 'client_id=' . $this->client_id . '&' . 'redirect_uri=' . urlencode($this->redirect_uri) . '&' . 'scope=' . $this->scope . '&' . 'type=' . $this->type;
+        // Получение какая функция вызвала getSign
+        if (!$type) {
+            $backtrace = debug_backtrace();
+            $type = $backtrace[1]['function'];
+        }
+
+        // Тело подписи
+        switch ($type) {
+            case "token": // Тело подписи при запросе постоянного токена
+                $body = 'client_id=' . $this->client_id . '&' . 'code=' . $this->code . '&' . 'grant_type=' .
+                    $this->grant_type . '&' . 'redirect_uri=' . urlencode($this->redirect_uri) . '&' . 'type=' .
+                    $this->type;
+                break;
+            case "revoke": // TODO отзыв token узнать как делать подпись в этот раз
+                $body = 'access_token=' . $this->access_token . '&' . 'client_id=' . $this->client_id . '&' .
+                    'code=' . $this->code . '&' . 'grant_type=' . $this->grant_type . '&' . 'redirect_uri=' .
+                    urlencode($this->redirect_uri) . '&' . 'type=' . $this->type;
+                break;
+            case "init": // Тело подписи при инициализации платежа
+                $body = 'access_token=' . $this->access_token . '&' . 'merchant_id=' . $this->client_id .
+                    '&' . 'merchant_transaction_id=' . urlencode($this->merchant_transaction_id) . '&' . 'amount=' .
+                    $this->amount . '&' . 'currency=' . $this->currency . '&' . 'description='
+                    . urlencode($this->description) . '&' . 'type=' . $this->type;
+                break;
+            case "complete": // Тело подписи при проведении платежа
+                $body = 'access_token=' . $this->access_token . '&' . 'merchant_id=' . $this->merchant_id . '&' .
+                    'merchant_transaction_id=' . urlencode($this->merchant_transaction_id) . '&' .
+                    'processor_transaction_id=' . $this->processor_transaction_id . '&' . 'type=' . $this->type;
+                var_dump($body);
+                break;
+            default:   // По умолчанию и при инийциализации
+            case "auth":
+                $body = 'response_type=' . $this->response_type . '&' . 'client_id=' . $this->client_id . '&' .
+                    'redirect_uri=' . urlencode($this->redirect_uri) . '&' . 'scope=' . $this->scope . '&' .
+                    'type=' . $this->type;
+                break;
+        }
+
         // строка подписи
         $clear_sign = $body . ';' . $this->iat . ';' . $this->secret;
         // вычисление подписи
         $this->sign = base64_encode(hash('sha256', $clear_sign, true));
+
+        var_dump($this->sign);
+
         // Возвращаем подпись
         return $this->sign;
     }
 
 
     /**
-     * Получение подписи
-     */
-    public function getSignToken()
-    {
-        // тело подписи
-        $body = 'client_id=' . $this->client_id . '&' . 'code=' . $this->code . '&' . 'grant_type=' . $this->grant_type . '&' . 'redirect_uri=' . urlencode($this->redirect_uri) . '&' . 'type=' . $this->type;
-        // строка подписи
-        $clear_sign = $body . ';' . $this->iat . ';' . $this->secret;
-        // вычисление подписи
-        $this->sign = base64_encode(hash('sha256', $clear_sign, true));
-        // Возвращаем подпись
-        return $this->sign;
-    }
-
-
-    /**
-     * Авторизация
+     * Авторизация с получением временного токена
      * @return mixed|\PaymasterSdkPHP\Common\ResponseObject
      */
     public function auth()
     {
         $fields = array(
             'response_type' => $this->response_type,
-            'client_id'     => $this->client_id,
-            'redirect_uri'  => $this->redirect_uri,
-            'scope'         => $this->scope,
-            'type'          => $this->type,
-            'sign'          => $this->getSign(),
-            'iat'           => $this->iat
+            'client_id' => $this->client_id,
+            'redirect_uri' => $this->redirect_uri,
+            'scope' => $this->scope,
+            'type' => $this->type,
+            'sign' => $this->getSign(),
+            'iat' => $this->iat
         );
 
         try {
@@ -189,10 +231,10 @@ class DirectProtocol
         $this->urlGetAuthActionForm2 = $this->urlBase . $this->_getFormAction($respond->getBody());
         // Массив для передачи в форму
         $form2SubmitArray = array(
-            'values[card_pan]'   => "4100000000000010", // Номер карты (фейковый)
+            'values[card_pan]' => "4100000000000010", // Номер карты (фейковый)
             'values[card_month]' => "6", // месяц карты
-            'values[card_year]'  => (date("Y") + 5), // год карты
-            'values[card_cvv]'   => "111", // CVV
+            'values[card_year]' => (date("Y") + 5), // год карты
+            'values[card_cvv]' => "111", // CVV
         );
 
         $respond = $this->request->call($this->urlGetAuthActionForm2, 'POST', $form2SubmitArray);
@@ -203,36 +245,46 @@ class DirectProtocol
         return $this->code;
     }
 
+
     /**
-     * Получение токена
+     * Получение постоянного токена
      * @return mixed|\PaymasterSdkPHP\Common\ResponseObject
      */
     public function token()
     {
         $fields = array(
-            'client_id'    => $this->client_id,
-            'code'         => $this->code,
-            'grant_type'   => $this->grant_type,
+            'client_id' => $this->client_id,
+            'code' => $this->code,
+            'grant_type' => $this->grant_type,
             'redirect_uri' => $this->redirect_uri,
-            'sign'         => $this->getSignToken(),
-            'type'         => $this->type,
-            'iat'          => $this->iat
+            'sign' => $this->getSign('token'),
+            'type' => $this->type,
+            'iat' => $this->iat
         );
 
         try {
             $respond = $this->request->call($this->urlGetToken, 'POST', $fields);
             $respondObject = json_decode($respond->getBody());
 
-            if ($respondObject->status != "failure") {
+            if (isset($respondObject->status)) {
+                if ($respondObject->status != "failure") {
+                    $this->access_token = $respondObject->access_token;
+                    $this->token_type = $respondObject->token_type;
+                    $this->expires_in = $respondObject->expires_in;
+                    $this->account_identifier = $respondObject->account_identifier;
+                } else {
+                    throw new \Exception("\nI can't get token. Error is happen.\n");
+                    die;
+                }
+            } else {
                 $this->access_token = $respondObject->access_token;
                 $this->token_type = $respondObject->token_type;
                 $this->expires_in = $respondObject->expires_in;
                 $this->account_identifier = $respondObject->account_identifier;
-            } else {
-                throw new \Exception("I can't get token. Error is happen.");
             }
         } catch (\Exception $exception) {
             echo 'Error: ' . $exception->getMessage();
+            die;
         }
 
         return $respond->getBody();
@@ -241,42 +293,160 @@ class DirectProtocol
 
     /**
      * Отзыв токена
+     * todo нужно смотреть на метод получение подаиси для отзыва tokenа
      * @return mixed|\PaymasterSdkPHP\Common\ResponseObject
      */
     public function revoke()
     {
         $fields = array(
-            'client_id'    => $this->client_id,
+            'client_id' => $this->client_id,
             'access_token' => $this->access_token,
-            'type'         => $this->type,
-            'iat'          => $this->iat,
-            'sign'         => $this->getSign()
+            'sign' => $this->getSign('revoke'),
+            'type' => $this->type,
+            'iat' => $this->iat,
         );
         $respond = $this->request->call($this->urlRevoke, 'POST', $fields);
         return $respond;
     }
 
 
-    public function init()
+    /**
+     * Подготовка к проведению транзакции
+     * @param $transaction_id
+     * @param $amount
+     * @param $desc
+     * @return mixed
+     * @throws \Exception
+     */
+    public function init($transaction_id, $amount, $desc)
     {
+        if ((!$transaction_id) || (!$amount) || (!$desc)) {
+            if (!$transaction_id) {
+                throw new \Exception("\nTransaction id is must set!");
+            }
+            if (!$amount) {
+                throw new \Exception("\nTransaction amount is must set!");
+            }
+            if (!$desc) {
+                throw new \Exception("\nTransaction description is must set!");
+            }
+            die;
+        }
 
+
+        if (!$this->access_token) {
+            throw new \Exception("\nAccess token is must set! ".
+                "Please make auth at first and get constanly token!");
+            die;
+        }
+
+        // Присваиваем переменные
+        $this->merchant_transaction_id = $transaction_id;
+        $this->setAmount($amount);
+        $this->description = $desc;
+
+        // Заполняем поля
+        $fields = array(
+            'access_token' => $this->access_token,
+            'merchant_id' => $this->merchant_id,
+            'merchant_transaction_id' => $this->merchant_transaction_id,
+            'amount' => $this->amount,
+            'currency' => $this->currency,
+            'description' => $this->description,
+            'sign' => $this->getSign('init'),
+            'type' => $this->type,
+            'iat' => $this->iat
+        );
+
+
+        try {
+            $respond = $this->request->call($this->urlPaymentInit, 'POST', $fields);
+            $respondObject = json_decode($respond->getBody());
+
+            if (isset($respondObject->status)) {
+                if ($respondObject->status != "failure") {
+                    $this->processor_transaction_id = $respondObject->processor_transaction_id;
+                } else {
+                    throw new \Exception("\nI can't get processor transaction id. Error is happen.\n");
+                    die;
+                }
+            } else {
+                $this->processor_transaction_id = $respondObject->processor_transaction_id;
+            }
+        } catch (\Exception $exception) {
+            echo 'Error: ' . $exception->getMessage();
+            die;
+        }
+
+        return $respond->getBody();
     }
 
+    /**
+     * Проведение платежа
+     * @throws \Exception
+     */
     public function complete()
     {
 
+        if (!$this->processor_transaction_id) {
+            throw new \Exception("\nProcessor transaction id is must set! ".
+                "Please make auth at first, init and get constanly token!");
+            die;
+        }
+
+        $fields = array(
+            'access_token' => $this->access_token,
+            'merchant_id' => $this->merchant_id,
+            'merchant_transaction_id' => $this->merchant_transaction_id,
+            'processor_transaction_id' => $this->processor_transaction_id,
+            'sign' => $this->getSign('complete'),
+            'type' => $this->type,
+            'iat' => $this->iat
+        );
+
+        try {
+            $respond = $this->request->call($this->urlPaymentComplete, 'POST', $fields);
+            $respondObject = json_decode($respond->getBody());
+            if (isset($respondObject->status)) {
+                if ($respondObject->status != "failure") {
+                    $this->processor_transaction_id = $respondObject->processor_transaction_id;
+                    $this->payment_id = $respondObject->payment_id;
+                } else {
+                    throw new \Exception("\nI can't get processor transaction id. Error is happen.\n");
+                    die;
+                }
+            } else {
+                $this->processor_transaction_id = $respondObject->processor_transaction_id;
+                $this->payment_id = $respondObject->payment_id;
+            }
+        } catch (\Exception $exception) {
+            echo 'Error: ' . $exception->getMessage();
+            die;
+        }
+
+        return $respond->getBody();
+
     }
 
+    /**
+     * TODO обработка карт
+     */
     public function card()
     {
 
     }
 
+    /**
+     * TODO конфирмация карт
+     */
     public function confirm()
     {
 
     }
 
+    /**
+     * TODO 3D конфирмация карт
+     */
     public function complete3ds()
     {
 
@@ -423,7 +593,6 @@ class DirectProtocol
 
     /**
      * Getter grand_type
-     * @param $grand_type
      */
     public function getAccessToken()
     {
@@ -435,9 +604,102 @@ class DirectProtocol
      * Получение текущего времени в формате unix
      * @return int|string
      */
-    public function getIat() {
-        $this->iat = time();
+    public function getIat()
+    {
+        $this->iat = strval(time());
         return $this->iat;
+    }
+
+
+    /**
+     * Setter merchant_transaction_id
+     * @param $merchant_transaction_id
+     */
+    public function setMerchantTransactionId($merchant_transaction_id)
+    {
+        $this->merchant_transaction_id = $merchant_transaction_id;
+    }
+
+    /**
+     * Getter merchant_transaction_id
+     */
+    public function getMerchantTransactionId()
+    {
+        return $this->merchant_transaction_id;
+    }
+
+
+    /**
+     * Setter amount
+     * @param $amount
+     */
+    public function setAmount($amount)
+    {
+        $this->amount = number_format($amount, 2, '.', ''); // пробуем числовой формат через точку с разделением как 0.00
+    }
+
+    /**
+     * Getter amount
+     */
+    public function getAmount()
+    {
+        return $this->amount;
+    }
+
+
+    /**
+     * Setter amount
+     * @param $currency
+     */
+    public function setCurrency($currency)
+    {
+        $this->currency = $currency;
+    }
+
+    /**
+     * Getter amount
+     */
+    public function getCurrency()
+    {
+        return $this->currency;
+    }
+
+
+    /**
+     * Setter description
+     * @param $description
+     */
+    public function setDescription($description)
+    {
+        $this->description = $description;
+    }
+
+    /**
+     * Getter description
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+
+    //processor_transaction_id
+
+    /**
+     * Setter processor_transaction_id
+     * @param $processor_transaction_id
+     */
+    public function setProcessorTransactionId($processor_transaction_id)
+    {
+        $this->processor_transaction_id = $processor_transaction_id;
+    }
+
+    /**
+     * Getter processor_transaction_id
+     */
+    public function getProcessorTransactionId()
+    {
+        return $this->description;
     }
 
 

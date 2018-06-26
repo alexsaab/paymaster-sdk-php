@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Paymaster оплата</title>
+</head>
+<body>
+<form method="post" action="{{ method.url }}" name="paymentForm">
+    <input type="hidden" name="LMI_MERCHANT_ID" value="{{ method.LMI_MERCHANT_ID }}"/>
+    <input type="hidden" name="LMI_PAYMENT_AMOUNT" value="{{ method.LMI_PAYMENT_AMOUNT }}"/>
+    <input type="hidden" name="LMI_CURRENCY" value="{{ method.LMI_CURRENCY }}"/>
+    <input type="hidden" name="LMI_CURRENCY" value="{{ method.LMI_PAYMENT_DESC }}"/>
+    {% if method.LMI_PAYMENT_NO is defined %}
+    <input type="hidden" name="LMI_PAYMENT_NO" value="{{ method.LMI_PAYMENT_NO }}"/>
+    {% endif %}
+    {% if method.LMI_SIM_MODE is defined %}
+    <input type="hidden" name="LMI_SIM_MODE" value="{{ method.LMI_SIM_MODE }}"/>
+    {% endif %}
+    {% if method.LMI_INVOICE_CONFIRMATION_URL is defined %}
+    <input type="hidden" name="LMI_INVOICE_CONFIRMATION_URL" value="{{ method.LMI_INVOICE_CONFIRMATION_URL }}"/>
+    {% endif %}
+    {% if method.LMI_PAYMENT_NOTIFICATION_URL is defined %}
+    <input type="hidden" name="LMI_PAYMENT_NOTIFICATION_URL" value="{{ method.LMI_PAYMENT_NOTIFICATION_URL }}"/>
+    {% endif %}
+    {% if method.LMI_SUCCESS_URL is defined %}
+    <input type="hidden" name="LMI_SUCCESS_URL" value="{{ method.LMI_SUCCESS_URL }}"/>
+    {% endif %}
+    {% if method.LMI_FAILURE_URL is defined %}
+    <input type="hidden" name="LMI_FAILURE_URL" value="{{ method.LMI_FAILURE_URL }}"/>
+    {% endif %}
+    {% if method.LMI_PAYER_PHONE_NUMBER is defined %}
+    <input type="hidden" name="LMI_PAYER_PHONE_NUMBER" value="{{ method.LMI_PAYER_PHONE_NUMBER }}"/>
+    {% endif %}
+    {% if method.LMI_PAYER_EMAIL is defined %}
+    <input type="hidden" name="LMI_PAYER_EMAIL" value="{{ method.LMI_PAYER_EMAIL }}"/>
+    {% endif %}
+    {% if method.LMI_EXPIRES is defined %}
+    <input type="hidden" name="LMI_EXPIRES" value="{{ method.LMI_EXPIRES }}"/>
+    {% endif %}
+    {% if method.LMI_PAYMENT_METHOD is defined %}
+    <input type="hidden" name="LMI_PAYMENT_METHOD" value="{{ method.LMI_PAYMENT_METHOD }}"/>
+    {% endif %}
+    {% if method.LMI_SHOP_ID is defined %}
+    <input type="hidden" name="LMI_SHOP_ID" value="{{ method.LMI_SHOP_ID }}"/>
+    {% endif %}
+    {% if method.LMI_PAYMENT_METHOD is defined %}
+    <input type="hidden" name="LMI_PAYMENT_METHOD" value="{{ method.LMI_PAYMENT_METHOD }}"/>
+    {% endif %}
+    {% if method.SIGN is defined %}
+    <input type="hidden" name="SIGN" value="{{ method.SIGN }}"/>
+    {% endif %}
+    {% if (method.LMI_SHOPPINGCART|length) > 0 %}
+    {% for key,ITEM in method.LMI_SHOPPINGCART %}
+    <input type="hidden" name="LMI_SHOPPINGCART.ITEM[{{ key }}].NAME" value="{{ ITEM.NAME }}"/>
+    <input type="hidden" name="LMI_SHOPPINGCART.ITEM[{{ key }}}].QTY" value="{{ ITEM.QTY }}"/>
+    <input type="hidden" name="LMI_SHOPPINGCART.ITEM[{{ key }}].PRICE"
+           value="{{ ITEM.PRICE|number_format(2, '.', '') }}"/>
+    <input type="hidden" name="LMI_SHOPPINGCART.ITEM[{{ key }}].TAX" value="{{ ITEM.TAX }}"/>
+    {% endfor %}
+    {% endif %}
+    <input type="submit" value="Оплатить"/>
+</form>
+<script>
+    window.onload = function () {
+        document.forms['paymentForm'].submit();
+    }
+</script>
+</body>
+</html>

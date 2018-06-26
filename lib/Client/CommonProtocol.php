@@ -218,7 +218,7 @@ class CommonProtocol
      * @param $value
      */
     public function set($variable, $value) {
-        $this->$variable = $variable;
+        $this->$variable = $value;
     }
 
     /**
@@ -266,8 +266,22 @@ class CommonProtocol
         // Проверяем форму основную
         $this->__checkForm1();
 
+        // Инициализация формы
+
+        $html = <<< EOF
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Paymaster оплата</title>
+</head>
+<body>
+<form method="post" action="{$this->url}" name="paymentForm">
+EOF;
+
+
         // Основные значения
-        $html = "<input type='hidden' name='LMI_MERCHANT_ID' value='{$this->LMI_MERCHANT_ID}'/>\n";
+        $html .= "<input type='hidden' name='LMI_MERCHANT_ID' value='{$this->LMI_MERCHANT_ID}'/>\n";
         // Приводим значения к формату 0.00
         $LMI_PAYMENT_AMOUNT = number_format($this->LMI_PAYMENT_AMOUNT,2);
         $html .= "<input type='hidden' name='LMI_PAYMENT_AMOUNT' value='{$LMI_PAYMENT_AMOUNT}'/>\n";
@@ -313,11 +327,24 @@ class CommonProtocol
             }
         }
 
+        $html .= <<< EOF
+<input type="submit" value="Оплатить"/>
+</form>
+<script>
+    window.onload = function(){
+        document.forms['paymentForm'].submit();
+    }
+</script>
+</body>
+</html>
+EOF;
+
+
         if (isset($amount))
             if ($amount != $LMI_PAYMENT_AMOUNT)
                 throw new \Exception('Не совпадают суммы. Сумма заказа '.$LMI_PAYMENT_AMOUNT.', а сумма товарных позиций '.$amount.' !');
 
-        echo $html;
+        return $html;
     }
 
 

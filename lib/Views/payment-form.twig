@@ -9,7 +9,7 @@
     <input type="hidden" name="LMI_MERCHANT_ID" value="{{ method.LMI_MERCHANT_ID }}"/>
     <input type="hidden" name="LMI_PAYMENT_AMOUNT" value="{{ method.LMI_PAYMENT_AMOUNT }}"/>
     <input type="hidden" name="LMI_CURRENCY" value="{{ method.LMI_CURRENCY }}"/>
-    <input type="hidden" name="LMI_CURRENCY" value="{{ method.LMI_PAYMENT_DESC }}"/>
+    <input type="hidden" name="LMI_PAYMENT_DESC" value="{{ method.LMI_PAYMENT_DESC }}"/>
     {% if method.LMI_PAYMENT_NO is defined %}
     <input type="hidden" name="LMI_PAYMENT_NO" value="{{ method.LMI_PAYMENT_NO }}"/>
     {% endif %}

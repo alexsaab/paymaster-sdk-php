@@ -44,7 +44,6 @@ interface ApiClientInterface
     /**
      * @param $path
      * @param $method
-     * @param $queryParams
      * @param $httpBody
      * @param $headers
      * @return mixed

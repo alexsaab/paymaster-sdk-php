@@ -178,7 +178,6 @@ class DirectProtocol
                 $body = 'access_token=' . $this->access_token . '&' . 'merchant_id=' . $this->merchant_id . '&' .
                     'merchant_transaction_id=' . urlencode($this->merchant_transaction_id) . '&' .
                     'processor_transaction_id=' . $this->processor_transaction_id . '&' . 'type=' . $this->type;
-                var_dump($body);
                 break;
             default:   // По умолчанию и при инийциализации
             case "auth":
@@ -192,9 +191,6 @@ class DirectProtocol
         $clear_sign = $body . ';' . $this->iat . ';' . $this->secret;
         // вычисление подписи
         $this->sign = base64_encode(hash('sha256', $clear_sign, true));
-
-        var_dump($this->sign);
-
         // Возвращаем подпись
         return $this->sign;
     }

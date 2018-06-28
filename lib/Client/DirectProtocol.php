@@ -332,7 +332,7 @@ class DirectProtocol
 
         if (!$this->access_token) {
             throw new \Exception("\nAccess token is must set! ".
-                "Please make auth at first and get constanly token!");
+                "Please make auth at first and get constant token!");
             die;
         }
 
